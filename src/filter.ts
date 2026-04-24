@@ -371,14 +371,15 @@ export function parseFilter<T>(
                     throw new BadRequestException(`Invalid filter suffix '${token.suffix}' for column '${column}'`)
                 }
             } else {
-                if (
-                    token.operator &&
-                    !allowedOperators.includes(token.operator)
-                ) {
-                    throw new BadRequestException(`Filter operator '${token.operator}' is not allowed for column '${column}'`)
+                if (token.operator && !allowedOperators.includes(token.operator)) {
+                    throw new BadRequestException(
+                        `Filter operator '${token.operator}' is not allowed for column '${column}'`
+                    )
                 }
                 if (token.suffix && !allowedOperators.includes(token.suffix)) {
-                    throw new BadRequestException(`Filter suffix '${token.suffix}' is not allowed for column '${column}'`)
+                    throw new BadRequestException(
+                        `Filter suffix '${token.suffix}' is not allowed for column '${column}'`
+                    )
                 }
                 if (token.quantifier !== FilterQuantifier.ANY && !allowedOperators.includes(token.quantifier)) {
                     continue

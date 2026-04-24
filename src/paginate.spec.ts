@@ -2336,9 +2336,7 @@ describe('paginate', () => {
             },
         }
 
-        await expect(paginate<CatEntity>(query, catRepo, config)).rejects.toThrow(
-            "Column 'age' is not filterable"
-        )
+        await expect(paginate<CatEntity>(query, catRepo, config)).rejects.toThrow("Column 'age' is not filterable")
     })
 
     it('should throw BadRequestException when using non-configured filter operator', async () => {
