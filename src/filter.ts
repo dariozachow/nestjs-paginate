@@ -1,3 +1,4 @@
+import { BadRequestException } from '@nestjs/common'
 import { values } from 'lodash'
 import {
     ArrayContains,
@@ -352,7 +353,7 @@ export function parseFilter<T>(
     }
     for (const column of Object.keys(query.filter)) {
         if (!(column in filterableColumns)) {
-            continue
+            throw new BadRequestException(`Column '${column}' is not filterable`)
         }
         const allowedOperators = filterableColumns[column]
         const input = query.filter[column]
@@ -364,21 +365,20 @@ export function parseFilter<T>(
             }
             if (allowedOperators === true) {
                 if (token.operator && !isOperator(token.operator)) {
-                    continue
+                    throw new BadRequestException(`Invalid filter operator '${token.operator}' for column '${column}'`)
                 }
                 if (token.suffix && !isSuffix(token.suffix)) {
-                    continue
+                    throw new BadRequestException(`Invalid filter suffix '${token.suffix}' for column '${column}'`)
                 }
             } else {
                 if (
                     token.operator &&
-                    token.operator !== FilterOperator.EQ &&
                     !allowedOperators.includes(token.operator)
                 ) {
-                    continue
+                    throw new BadRequestException(`Filter operator '${token.operator}' is not allowed for column '${column}'`)
                 }
                 if (token.suffix && !allowedOperators.includes(token.suffix)) {
-                    continue
+                    throw new BadRequestException(`Filter suffix '${token.suffix}' is not allowed for column '${column}'`)
                 }
                 if (token.quantifier !== FilterQuantifier.ANY && !allowedOperators.includes(token.quantifier)) {
                     continue

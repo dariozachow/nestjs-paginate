@@ -2322,7 +2322,7 @@ describe('paginate', () => {
         )
     })
 
-    it('should ignore filterable column which is not configured', async () => {
+    it('should throw BadRequestException when filtering on non-filterable column', async () => {
         const config: PaginateConfig<CatEntity> = {
             sortableColumns: ['id'],
             filterableColumns: {
@@ -2336,13 +2336,12 @@ describe('paginate', () => {
             },
         }
 
-        const result = await paginate<CatEntity>(query, catRepo, config)
-
-        expect(result.data).toStrictEqual(cats)
-        expect(result.links.current).toBe('?page=1&limit=20&sortBy=id:ASC&filter.age=$not:$null')
+        await expect(paginate<CatEntity>(query, catRepo, config)).rejects.toThrow(
+            "Column 'age' is not filterable"
+        )
     })
 
-    it('should ignore filter operator which is not configured', async () => {
+    it('should throw BadRequestException when using non-configured filter operator', async () => {
         const config: PaginateConfig<CatEntity> = {
             sortableColumns: ['id'],
             filterableColumns: {
@@ -2356,10 +2355,9 @@ describe('paginate', () => {
             },
         }
 
-        const result = await paginate<CatEntity>(query, catRepo, config)
-
-        expect(result.data).toStrictEqual(cats)
-        expect(result.links.current).toBe('?page=1&limit=20&sortBy=id:ASC&filter.age=$not:$null')
+        await expect(paginate<CatEntity>(query, catRepo, config)).rejects.toThrow(
+            "Filter operator '$null' is not allowed for column 'age'"
+        )
     })
 
     it('should throw an error when no sortableColumns', async () => {
