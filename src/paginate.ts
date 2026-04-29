@@ -667,9 +667,15 @@ export async function paginate<T extends ObjectLiteral>(
 
     let filterJoinMethods = {}
     if (query.filter) {
-        filterJoinMethods = addFilter(queryBuilder, query, config.filterableColumns, {
-            maxAndValues: config.maxAndValues,
-        }, config.throwOnInvalidFilter)
+        filterJoinMethods = addFilter(
+            queryBuilder,
+            query,
+            config.filterableColumns,
+            {
+                maxAndValues: config.maxAndValues,
+            },
+            config.throwOnInvalidFilter
+        )
     }
     const joinMethods = { ...filterJoinMethods, ...config.joinMethods }
 
