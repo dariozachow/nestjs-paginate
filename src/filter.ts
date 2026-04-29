@@ -383,7 +383,11 @@ export function parseFilter<T>(
                     continue
                 }
             } else {
-                if (token.operator && !allowedOperators.includes(token.operator)) {
+                if (
+                    token.operator &&
+                    token.operator !== FilterOperator.EQ &&
+                    !allowedOperators.includes(token.operator)
+                ) {
                     if (throwOnInvalidFilter) {
                         throw new BadRequestException(
                             `Filter operator '${token.operator}' is not allowed for column '${column}'`
