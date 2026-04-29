@@ -345,7 +345,8 @@ export function parseFilter<T>(
     filterableColumns?: {
         [column: string]: (FilterOperator | FilterSuffix | FilterQuantifier | FilterComparator)[] | true
     },
-    qb?: SelectQueryBuilder<T>
+    qb?: SelectQueryBuilder<T>,
+    throwOnInvalidFilter = false
 ): ColumnFilters {
     const filter: ColumnFilters = {}
     if (!filterableColumns || !query.filter) {
@@ -353,7 +354,10 @@ export function parseFilter<T>(
     }
     for (const column of Object.keys(query.filter)) {
         if (!(column in filterableColumns)) {
-            throw new BadRequestException(`Column '${column}' is not filterable`)
+            if (throwOnInvalidFilter) {
+                throw new BadRequestException(`Column '${column}' is not filterable`)
+            }
+            continue
         }
         const allowedOperators = filterableColumns[column]
         const input = query.filter[column]
@@ -365,21 +369,35 @@ export function parseFilter<T>(
             }
             if (allowedOperators === true) {
                 if (token.operator && !isOperator(token.operator)) {
-                    throw new BadRequestException(`Invalid filter operator '${token.operator}' for column '${column}'`)
+                    if (throwOnInvalidFilter) {
+                        throw new BadRequestException(
+                            `Invalid filter operator '${token.operator}' for column '${column}'`
+                        )
+                    }
+                    continue
                 }
                 if (token.suffix && !isSuffix(token.suffix)) {
-                    throw new BadRequestException(`Invalid filter suffix '${token.suffix}' for column '${column}'`)
+                    if (throwOnInvalidFilter) {
+                        throw new BadRequestException(`Invalid filter suffix '${token.suffix}' for column '${column}'`)
+                    }
+                    continue
                 }
             } else {
                 if (token.operator && !allowedOperators.includes(token.operator)) {
-                    throw new BadRequestException(
-                        `Filter operator '${token.operator}' is not allowed for column '${column}'`
-                    )
+                    if (throwOnInvalidFilter) {
+                        throw new BadRequestException(
+                            `Filter operator '${token.operator}' is not allowed for column '${column}'`
+                        )
+                    }
+                    continue
                 }
                 if (token.suffix && !allowedOperators.includes(token.suffix)) {
-                    throw new BadRequestException(
-                        `Filter suffix '${token.suffix}' is not allowed for column '${column}'`
-                    )
+                    if (throwOnInvalidFilter) {
+                        throw new BadRequestException(
+                            `Filter suffix '${token.suffix}' is not allowed for column '${column}'`
+                        )
+                    }
+                    continue
                 }
                 if (token.quantifier !== FilterQuantifier.ANY && !allowedOperators.includes(token.quantifier)) {
                     continue
@@ -617,10 +635,11 @@ export function addFilter<T>(
     filterableColumns?: {
         [column: string]: (FilterOperator | FilterSuffix | FilterQuantifier | FilterComparator)[] | true
     },
-    opts: AddFilterOptions = {}
+    opts: AddFilterOptions = {},
+    throwOnInvalidFilter = false
 ) {
     const mainMetadata = qb.expressionMap.mainAlias.metadata
-    const filter = parseFilter(query, filterableColumns, qb)
+    const filter = parseFilter(query, filterableColumns, qb, throwOnInvalidFilter)
 
     addDirectFilters(qb, filter)
     addToManySubFilters(qb, filter, query, filterableColumns, opts)
